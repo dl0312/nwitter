@@ -1,11 +1,21 @@
 import React, { useState } from 'react'
+import { db } from 'fbase'
+import { collection, addDoc, serverTimestamp } from '@firebase/firestore'
 
 const Home = () => {
   const [nweet, setNweet] = useState('')
 
-  const handleOnSubmit = (e) => {
+  const handleOnSubmit = async (e) => {
     e.preventDefault()
-    console.log(nweet)
+
+    const docRef = await addDoc(collection(db, 'nweets'), {
+      nweet,
+      createdAt: serverTimestamp(),
+    })
+
+    console.log('Document written with ID: ', docRef.id)
+
+    setNweet('')
   }
 
   const handleOnChange = (e) => {
@@ -18,7 +28,7 @@ const Home = () => {
   return (
     <div>
       <form onSubmit={handleOnSubmit}>
-        <input type="text" placeholder="What's on your mind?" maxLength={120} onChange={handleOnChange} />
+        <input type="text" placeholder="What's on your mind?" maxLength={120} onChange={handleOnChange} value={nweet} />
         <input type="submit" value="Nweet" />
       </form>
     </div>

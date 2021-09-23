@@ -1,32 +1,37 @@
 import React, { useState, useEffect } from 'react'
 import { db } from 'fbase'
-import { collection, addDoc, getDocs, serverTimestamp } from '@firebase/firestore'
+import { collection, addDoc, query, onSnapshot, orderBy, serverTimestamp } from '@firebase/firestore'
 
-const Home = () => {
+const Home = ({ user }) => {
   const [nweet, setNweet] = useState('')
   const [nweets, setNweets] = useState([])
 
   useEffect(() => {
-    const getNweets = async () => {
-      const dbNweets = await getDocs(collection(db, 'nweets'))
-      dbNweets.forEach((document) => {
-        const nweetObject = {
-          ...document.data(),
-          id: document.id,
+    // 실시간으로 데이터를 데이터베이스에서 가져오기
+
+    const q = query(collection(db, 'nweets'), orderBy('createdAt', 'desc'))
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const nextNweets = querySnapshot.docs.map((doc) => {
+        return {
+          id: doc.id,
+          ...doc.data(),
         }
-        setNweets((prev) => [nweetObject, ...prev])
       })
-      // setNweets(dbNweets.map((document) => document.data()))
+      setNweets(nextNweets)
+    })
+
+    return () => {
+      unsubscribe()
     }
-    getNweets()
   }, [])
 
   const handleOnSubmit = async (e) => {
     e.preventDefault()
 
     const docRef = await addDoc(collection(db, 'nweets'), {
-      nweet,
+      text: nweet,
       createdAt: serverTimestamp(),
+      creatorId: user.uid,
     })
 
     console.log('Document written with ID: ', docRef.id)
@@ -48,9 +53,9 @@ const Home = () => {
         <input type="submit" value="Nweet" />
       </form>
       <div>
-        {nweets.map(({ id, nweet }) => (
+        {nweets.map(({ id, text }) => (
           <div key={id}>
-            <h4>{nweet}</h4>
+            <h4>{text}</h4>
           </div>
         ))}
       </div>

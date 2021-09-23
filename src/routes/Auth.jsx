@@ -9,17 +9,20 @@ const Auth = () => {
       target: { name, value },
     } = e
 
-    console.log(name)
-
     if (name === 'email') {
       setEmail(value)
     } else if (name === 'password') {
       setPassword(value)
     }
   }
+
+  const handleOnSubmit = (e) => {
+    e.preventDefault();
+  }
+
   return (
     <div>
-      <form>
+      <form onSubmit={handleOnSubmit}>
         <input name="email" type="text" placeholder="Email" required value={email} onChange={handleOnChange} />
         <input
           name="password"
